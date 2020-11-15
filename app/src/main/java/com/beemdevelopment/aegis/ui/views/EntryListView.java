@@ -273,8 +273,26 @@ public class EntryListView extends Fragment implements EntryAdapter.Listener {
     }
 
     public void addEntry(VaultEntry entry) {
-        _adapter.addEntry(entry);
+        addEntry(entry, false);
+    }
+
+    public void addEntry(VaultEntry entry, boolean focusEntry) {
+        int position = _adapter.addEntry(entry);
         updateEmptyState();
+
+        if (focusEntry && position >= 0) {
+            _recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        _recyclerView.removeOnScrollListener(this);
+                        _adapter.setTempHighlightEntry(true);
+                        _adapter.focusEntry(entry);
+                    }
+                }
+            });
+            _recyclerView.smoothScrollToPosition(position);
+        }
     }
 
     public void addEntries(Collection<VaultEntry> entries) {
